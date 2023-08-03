@@ -8,6 +8,8 @@
     <title>博客列表</title>
     <link rel="stylesheet" href="css/conmmon.css">
     <link rel="stylesheet" href="css/blog_list.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/logout.js"></script>
 </head>
 
 <body>
@@ -19,11 +21,12 @@
         <span class="spacer"></span>
         <a href="blog_list.html">主页</a>
         <a href="blog_edit.html">写博客</a>
-        <a href="#">注销</a>
+        <a href="javascript:logout()">注销</a>
     </div>
     <!-- 版心 -->
     <div class="container">
         <!-- 左侧个人信息 -->
+        <!-- diplay为none，暂不展示       -->
         <div class="container-left" style="display: none;">
             <div class="card">
                 <img src="img/avatar.png" class="avtar" alt="">
@@ -42,23 +45,85 @@
 
 
         <!-- 右侧内容详情 -->
-        <div class="container-right" style="margin-left: 10%;">
-            <!-- 每一篇博客包含标题, 摘要, 时间 -->
-            <div class="blog">
-                <div class="title">我的第一篇博客</div>
-                <div class="date">2021-06-02</div>
-                <div class="desc">
-                    从今天起, 我要认真敲代码. Lorem ipsum, dolor sit amet consectetur adipisicing elit. Cum distinctio ullam eum ut
-                    veroab laborum numquam tenetur est in dolorum a sint, assumenda adipisci similique quaerat vel.
-                    Facere,
-                    et.
-                </div>
-                <a href="blog_content.html?id=1" class="detail">查看全文 &gt;&gt;</a>&nbsp;&nbsp;
-                <a href="blog_content.html?id=1" class="detail">修改 &gt;&gt;</a>&nbsp;&nbsp;
-                <a href="blog_content.html?id=1" class="detail">删除 &gt;&gt;</a>
-            </div>
+        <div id="artListDiv" class="container-right" style="margin-left: 10%;">
+
         </div>
     </div>
+
+    <script>
+        function init() {
+            jQuery.ajax({
+                url: "art/mylist",
+                type: "GET",
+                data: {},
+                success: function (res) {
+                    if(res.code == 200) {
+                        // 请求成功
+                        var createHtml = "";
+                        var artList = res.data;
+                        if(artList == null || artList.length == 0) {
+                            // 未发表过文章
+                            createHtml += "<h3 style='margin-left:20px;margin-top:20px'>暂无文章，"+
+                                "请先<a href='blog_add.html'>添加</a>！</h3>"
+                        }else{
+                            <!-- 每一篇博客包含标题, 摘要, 时间 -->
+                            for (var i = 0; i < artList.length; i++) {
+                                var art = artList[i];
+                                createHtml += '<div class="blog">';
+                                createHtml += '<div class="title">' + art.title + '</div>';
+                                createHtml += '<div class="date">' + art.createtime + '</div>';
+                                createHtml += '<div class="desc">';
+                                createHtml += art.content;
+                                createHtml += '</div>';
+                                createHtml += '<a href="blog_content.html?id=' +
+                                    art.id + '"class="detail">查看全文 &gt;&gt;</a>&nbsp;&nbsp';
+                                createHtml += '<a href="blog_edit.html?id=' +
+                                    art.id + '" class="detail">修改 &gt;&gt;</a>&nbsp;&nbsp;'
+                                createHtml += '<a href="javascript:del('+ art.id +')" class="detail">删除 &gt;&gt;</a>';
+                                createHtml += '</div>';
+                            }
+
+                        }
+                        jQuery("#artListDiv").html(createHtml);
+                    }else{
+                        // 请求失败
+                        alert("操作失败！");
+                    }
+                }
+            })
+        }
+        init();
+        
+        // 根据文章id，进行文章删除操作
+        function del(aid) {
+            // 1-参数校验，防止通过开发者工具任意调用del()方法
+            // 不能完全避免，剩下的文章归属性的判断交给后端实现
+            if(aid == "" || aid <= 0) {
+                alert("参数错误！");
+                return false;
+            }
+            // 2-将数据返回给后端，进行删除操作
+            jQuery.ajax({
+                url: "art/del",
+                type: "POST",
+                data: {
+                    "aid": aid
+                },
+                // 3-将结果展示给用户
+                success: function (res) {
+                    if(res.data == 1 && res.code == 200) {
+                        alert("删除成功！");
+                        // 刷新当前页面
+                        location.href = location.href;
+                    }else{
+                        // 删除失败
+                        alert("删除失败！" + res.msg);
+                    }
+                }
+            })
+
+        }
+    </script>
 </body>
 
 </html>
