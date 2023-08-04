@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="editor.md/css/editormd.min.css" />
     <script src="js/jquery.min.js"></script>
     <script src="editor.md/editormd.js"></script>
+    <script src="js/urlutils.js"></script>
 </head>
 
 <body>
@@ -31,8 +32,8 @@
     <div class="blog-edit-container">
         <!-- 标题编辑区 -->
         <div class="title">
-            <input type="text" placeholder="在这里写下文章标题">
-            <button onclick="mysub()">发布文章</button>
+            <input id="title" type="text" placeholder="在这里写下文章标题">
+            <button onclick="doUpdate()">修改文章</button>
         </div>
         <!-- 创建编辑器标签 -->
         <div id="editorDiv">
@@ -41,6 +42,7 @@
     </div>
 
     <script>
+        var aid = getParamValue("aid"); //获取url中的aid参数
         var editor;
         function initEdit(md){
             // 编辑器设置
@@ -57,11 +59,74 @@
             });
         }
         initEdit("# 在这里写下一篇博客"); // 初始化编译器的值
-        // 提交
-        function mysub(){
+        // 执行修改操作
+        function doUpdate(){
             // alert(editor.getValue()); // 获取值
             // editor.setValue("#123") // 设置值
+            // 1-参数校验
+            var title = jQuery("#title");
+            if(title.val().trim()=="") {
+                alert("请输入标题！")
+                title.focus();
+                return false;
+            }
+            if(editor.getValue()=="") {
+                alert("请输入正文！");
+                return false;
+            }
+            // 2-把文章内容传递给后端
+            jQuery.ajax({
+                url: "/art/update",
+                type: "POST",
+                data: {
+                    "id": aid,
+                    "title": title.val(),
+                    "content": editor.getValue(),
+                },
+                success: function (res) {
+                    // 3-展示后端返回的结果
+                    if(res.code == 200 && res.data == 1) {
+                        alert("修改成功！");
+                        location.href = "myblog_list.html";
+                    }else if(res.code == -2){
+                        alert("请先登录！");
+                        location.href = "login.html";
+                    }else{
+                        alert("修改失败！"+res.msg);
+                    }
+                }
+            })
         }
+        function init() {
+            // 1-校验文章id
+            if(aid == null || aid <= 0) {
+                alert("非法参数！");
+                return false;
+            }
+            // 2-查询文章
+            jQuery.ajax({
+                url: "/art/update_init",
+                type: "GET",
+                data: {
+                    "aid": aid,
+                },
+                // 3-把文章内容展示到前端
+                success: function (res) {
+                    if(res.code == 200 && res.data != null && res.data.id > 0) {
+                        // 查询成功
+                        jQuery("#title").val(res.data.title);
+                        initEdit(res.data.content);
+                    }else if(res.code == -2){
+                        alert("请先登录！");
+                        location.href = "login.html";
+                    }else{
+                        alert("查询失败！"+res.msg);
+                    }
+                }
+            })
+
+        }
+        init();
     </script>
 </body>
 

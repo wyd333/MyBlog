@@ -14,4 +14,5 @@ import lombok.Data;
 @Data
 public class UserinfoVO extends Userinfo {
     private String checkCode;   //验证码
+    private int artCount;   //用户发表的文章总数
 }

@@ -31,7 +31,7 @@
     <div class="blog-edit-container">
         <!-- 标题编辑区 -->
         <div class="title">
-            <input type="text" placeholder="在这里写下文章标题">
+            <input id="title" type="text" placeholder="在这里写下文章标题">
             <button onclick="mysub()">发布文章</button>
         </div>
         <!-- 创建编辑器标签 -->
@@ -59,6 +59,44 @@
         initEdit("# 在这里写下一篇博客"); // 初始化编译器的值
         // 提交
         function mysub(){
+            // 1-参数校验
+            var title = jQuery("#title");
+            if(title.val().trim()=="") {
+                alert("请输入标题！")
+                title.focus();
+                return false;
+            }
+            if(editor.getValue()=="") {
+                alert("请输入正文！");
+                return false;
+            }
+            // 2-将数据提交给后端
+            jQuery.ajax({
+                url: "/art/add",
+                type: "POST",
+                data: {
+                    "title": title.val(),
+                    "content": editor.getValue(),
+                },
+                // 3-将后端返回的结果展示给用户
+                success: function (res) {
+                    if(res.code == 200 && res.data==1) {
+                        // 文章添加失败
+                        if(confirm("添加成功！是否继续添加文章？")) {
+                            // 刷新当前页面
+                            location.href = location.href;
+                        }else{
+                            // 跳转到文章管理页面
+                            location.href = "myblog_list.html";
+                        }
+                    }else{
+                        alert("添加文章失败！"+res.msg);
+                    }
+                }
+
+            })
+
+
             // alert(editor.getValue()); // 获取值
             // editor.setValue("#123") // 设置值
         }

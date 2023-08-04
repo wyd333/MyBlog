@@ -27,4 +27,19 @@ public class ArticleService {
     public int del(Integer aid, Integer uid){
         return articleMapper.del(aid, uid);
     }
+
+    public int add(Articleinfo art){
+        return articleMapper.add(art);
+    }
+
+    public Articleinfo getDetailByIdandUid(int aid, int uid){
+        return articleMapper.getDetailByIdandUid(aid, uid);
+    }
+
+    public int update(Articleinfo articleinfo) {
+        return articleMapper.update(articleinfo);
+    }
+    public Articleinfo getDetailById(int aid) {
+        return articleMapper.getDetailById(aid);
+    }
 }

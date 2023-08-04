@@ -20,7 +20,7 @@
         <!-- 用来占据中间位置 -->
         <span class="spacer"></span>
         <a href="blog_list.html">主页</a>
-        <a href="blog_edit.html">写博客</a>
+        <a href="blog_add.html">写博客</a>
         <a href="javascript:logout()">注销</a>
     </div>
     <!-- 版心 -->
@@ -75,10 +75,10 @@
                                 createHtml += '<div class="desc">';
                                 createHtml += art.content;
                                 createHtml += '</div>';
-                                createHtml += '<a href="blog_content.html?id=' +
+                                createHtml += '<a href="blog_content.html?aid=' +
                                     art.id + '"class="detail">查看全文 &gt;&gt;</a>&nbsp;&nbsp';
-                                createHtml += '<a href="blog_edit.html?id=' +
-                                    art.id + '" class="detail">修改 &gt;&gt;</a>&nbsp;&nbsp;'
+                                createHtml += '<a href="blog_edit.html?aid=' +
+                                    art.id + '"class="detail">修改 &gt;&gt;</a>&nbsp;&nbsp;'
                                 createHtml += '<a href="javascript:del('+ art.id +')" class="detail">删除 &gt;&gt;</a>';
                                 createHtml += '</div>';
                             }

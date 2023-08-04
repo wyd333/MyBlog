@@ -13,6 +13,7 @@
     <script src="editor.md/editormd.js"></script>
     <script src="editor.md/lib/marked.min.js"></script>
     <script src="editor.md/lib/prettify.min.js"></script>
+    <script src="js/urlutils.js"></script>
 </head>
 
 <body>
@@ -24,23 +25,21 @@
         <span class="spacer"></span>
         <a href="blog_list.html">主页</a>
         <a href="blog_edit.html">写博客</a>
-        <a href="login.html">登陆</a>
+        <a href="login.html">登录</a>
     </div>
     <!-- 版心 -->
     <div class="container">
         <!-- 左侧个人信息 -->
         <div class="container-left">
             <div class="card">
-                <img src="img/avatar.png" class="avtar" alt="">
-                <h3>小可爱</h3>
-                <a href="http:www.github.com">github 地址</a>
+                <img id="photo" src="img/avatar.png" class="avtar" alt="">
+                <h3 id="username"></h3>
+                <a href="https://github.com/wyd333">github 地址</a>
                 <div class="counter">
                     <span>文章</span>
-                    <span>分类</span>
                 </div>
                 <div class="counter">
-                    <span>2</span>
-                    <span>1</span>
+                    <span id="artcount">2</span>
                 </div>
             </div>
         </div>
@@ -48,9 +47,12 @@
         <div class="container-right">
             <div class="blog-content">
                 <!-- 博客标题 -->
-                <h3>我的第一篇博客</h3>
+                <h3 id="title"></h3>
                 <!-- 博客时间 -->
-                <div class="date">2021-06-02</div>
+                <div class="date">
+                    发布时间：<span id="createtime"></span>
+                    阅读量：<span id="rcount"></span>
+                </div>
                 <!-- 博客正文 -->
                 <div id="editorDiv">
 
@@ -60,6 +62,9 @@
     </div>
     <script type="text/javascript">
             var editormd;
+            var aid = getParamValue("id");
+
+            // 把md转成html
             function initEdit(md){
                 editormd = editormd.markdownToHTML("editorDiv", {
                 markdown : md, // Also, you can dynamic set Markdown text
@@ -67,7 +72,54 @@
                 // htmlDecode : "style,script,iframe",  // Note: If enabled, you should filter some dangerous HTML tags for website security.
                 });
             }
-            
+
+            //初始化页面
+            function init() {
+                // 1-参数校验
+                if(aid == null || aid <= 0) {
+                    alert("参数有误！");
+                    return false;
+                }
+                // 2-请求后端
+                jQuery.ajax({
+                    url: "/user/detail",
+                    type: "GET",
+                    data: {
+                        "aid": aid,
+                    },
+                    // 3-将后端返回的结果展示给前端
+                    success: function (res) {
+                        if(res.code==200 && res.data != null) {
+                            var user = res.data.user;
+                            var art = res.data.art;
+                            if(user!=null){
+                                // 给用户对象设置值
+                                if(user.photo!=""){
+                                    jQuery("#photo").att("src",user.photo);
+                                }
+                                jQuery("#username").html(user.username);
+                                jQuery("#artcount").html(user.artCount); // 用户发布的总文章数
+                            }else{
+                                alert("查询失败！"+res.msg);
+                            }
+
+                            if(art!=null){
+                                jQuery("#title").html(art.title);
+                                jQuery("#createtime").html(art.createtime);
+                                jQuery("#rcount").html(art.rcount); // 阅读量
+                                initEdit(art.content);
+                            }else{
+                                alert("查询失败！"+res.msg);
+                            }
+
+                        }else{
+                            alert("查询失败！"+res.msg);
+
+                        }
+                    }
+                })
+
+            }
     </script> 
 </body>
 
