@@ -39,7 +39,7 @@
                     <span>文章</span>
                 </div>
                 <div class="counter">
-                    <span id="artcount">2</span>
+                    <span id="artcount"></span>
                 </div>
             </div>
         </div>
@@ -51,7 +51,7 @@
                 <!-- 博客时间 -->
                 <div class="date">
                     发布时间：<span id="createtime"></span>
-                    阅读量：<span id="rcount"></span>
+                     | 阅读量：<span id="rcount"></span>
                 </div>
                 <!-- 博客正文 -->
                 <div id="editorDiv">
@@ -62,7 +62,7 @@
     </div>
     <script type="text/javascript">
             var editormd;
-            var aid = getParamValue("id");
+            var aid = getParamValue("aid");
 
             // 把md转成html
             function initEdit(md){
@@ -82,7 +82,7 @@
                 }
                 // 2-请求后端
                 jQuery.ajax({
-                    url: "/user/detail",
+                    url: "/art/detail",
                     type: "GET",
                     data: {
                         "aid": aid,
@@ -120,7 +120,22 @@
                 })
 
             }
-    </script> 
+            init();
+            function incrementCount() {
+                if(aid == null || aid <= 0) {
+                    return false;
+                }
+                jQuery.ajax({
+                    url: "/art/increment_rcount",
+                    type: "POST",
+                    data: {
+                        "aid": aid,
+                    },
+                    success: function () {}
+                })
+            }
+            incrementCount();
+    </script>
 </body>
 
 </html>

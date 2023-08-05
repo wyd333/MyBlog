@@ -6,6 +6,7 @@ import com.example.demo.model.Articleinfo;
 import com.example.demo.model.Userinfo;
 import com.example.demo.model.vo.UserinfoVO;
 import com.example.demo.service.ArticleService;
+import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.StringUtils;
@@ -32,11 +33,13 @@ import java.util.concurrent.FutureTask;
 public class ArticleController {
     @Autowired
     private ArticleService articleService;
+    @Autowired
+    private UserService userService;
 
     private static final int DESC_LENGTH = 120; //文章简介的长度
 
     @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
+    private ThreadPoolTaskExecutor taskExecutor;    //并发编程
 
     /**
      * 得到当前登录用户的文章列表
@@ -164,6 +167,13 @@ public class ArticleController {
         return ResultAjax.succ(ret);
     }
 
+    /**
+     * 查询文章详情页
+     * @param aid
+     * @return
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     @RequestMapping("/detail")
     public ResultAjax detail(Integer aid) throws ExecutionException, InterruptedException {
         // 1-参数校验
@@ -180,14 +190,14 @@ public class ArticleController {
         // 3-根据uid查询用户详情
         FutureTask<UserinfoVO> userTask = new FutureTask<>(()->{
             // todo: 调用 service
-            return null;
+            return userService.getUserById(articleinfo.getUid());
         });
         taskExecutor.submit(userTask);
 
         // 4-根据uid查询用户发表的总文章数
         FutureTask<Integer> artCountTask = new FutureTask<>(()->{
             // todo: 调用 service
-            return 0;
+            return articleService.getArtCountByUid(articleinfo.getUid());
         });
         taskExecutor.submit(artCountTask);
         // 5-组装数据
@@ -199,6 +209,63 @@ public class ArticleController {
         result.put("art",articleinfo);
         // 6-返回结果给前端
         return ResultAjax.succ(result);
+    }
+
+    @RequestMapping("/increment_rcount")
+    public ResultAjax incrementRCount(Integer aid) {
+        // 1-参数校验
+        if(aid == null || aid <= 0) {
+            return ResultAjax.fail(-1,"参数有误！");
+        }
+
+        // 2-修改数据库
+        int ret = articleService.incrementRCount(aid);
+
+        // 3-返回值
+        return ResultAjax.succ(ret);
+
+    }
+
+    /**
+     * 查询分页功能
+     * @param psize：每条显示的页数
+     * @param pindex：当前页码
+     * @return
+     */
+    @RequestMapping("/getlistbypage")
+    public ResultAjax getListByPage(Integer psize, Integer pindex) throws ExecutionException, InterruptedException {
+        // 1-参数矫正
+        if(psize == null || psize < 1) {
+            psize = 2;
+        }
+        if(pindex == null || pindex < 1) {
+            pindex = 1; //默认首页
+        }
+
+        // 2-并发进行文章列表和总页数查询
+        // 文章列表查询
+        Integer finalPSize = psize;
+        int offset = psize *(pindex -1);    //分页公式
+        FutureTask<List<Articleinfo>> articleTask = new FutureTask<>(()->{
+            return articleService.getListByPage(finalPSize,offset);
+        });
+        taskExecutor.submit(articleTask);
+
+        // 总页数查询
+        FutureTask<Integer> pageTask = new FutureTask<>(()->{
+            // 总条数
+            int totalCount = articleService.getArtCount();
+            return (int)Math.ceil(totalCount*1.0/finalPSize);
+        });
+        taskExecutor.submit(pageTask);
+        // 3-组装数据
+        List<Articleinfo> list = articleTask.get();
+        Integer size = pageTask.get();
+        HashMap<String, Object> ret = new HashMap<>();
+        ret.put("list",list);
+        ret.put("size",size);
+        // 4-将结果返回给前端
+        return ResultAjax.succ(ret);
     }
 
 }

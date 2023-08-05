@@ -33,4 +33,16 @@ public interface ArticleMapper {
 
     @Select("select * from articleinfo where id=#{aid}")
     Articleinfo getDetailById(@Param("aid") int aid);
+
+    @Select("select count(*) from articleinfo where uid=#{uid}")
+    int getArtCountByUid(@Param("uid") int uid);
+
+    @Update("update articleinfo set rcount=rcount+1 where id=#{aid}")
+    int incrementRCount(@Param("aid") int aid);
+
+    @Select("select * from articleinfo order by id desc limit #{psize} offset #{offset}")
+    List<Articleinfo> getListByPage(@Param("psize") int psize, @Param("offset") int offset);
+
+    @Select("select count(*) from articleinfo")
+    int getArtCount();
 }

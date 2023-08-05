@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.common.AppVar;
+import com.example.demo.common.PasswordUtils;
 import com.example.demo.common.ResultAjax;
 import com.example.demo.model.Userinfo;
 import com.example.demo.model.vo.UserinfoVO;
@@ -15,7 +16,7 @@ import javax.servlet.http.HttpSession;
 
 /**
  * Created with IntelliJ IDEA.
- * Description:
+ * Description: Controller类
  * User: 12569
  * Date: 2023-08-01
  * Time: 11:54
@@ -43,6 +44,9 @@ public class UserController {
             // 参数异常
             return ResultAjax.fail(-1,"非法参数");
         }
+        //将用户传入的password进行加盐加密
+        userinfo.setPassword(PasswordUtils.encrypt(userinfo.getPassword()));
+
         //2-请求 service 进行添加操作
         int result = userService.reg(userinfo);
 
@@ -72,9 +76,10 @@ public class UserController {
         }
 
         // 3-将对象中的密码和用户输入的密码进行比较
-        if(!userinfo.getPassword().equals(userinfoVO.getPassword())) {
+        // 加盐解密
+        if (!PasswordUtils.decrypt(userinfoVO.getPassword(),userinfo.getPassword())) {
             // 密码错误
-            return ResultAjax.fail(-2,"用户名或密码错误！");
+            return ResultAjax.fail(-3, "用户名或密码错误！");
         }
 
         // 4-比较成功后，将对象存入session
