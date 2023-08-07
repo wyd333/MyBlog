@@ -92,6 +92,12 @@ public class ArticleController {
         return ResultAjax.succ(ret);
     }
 
+    /**
+     * 添加文章
+     * @param articleinfo
+     * @param request
+     * @return
+     */
     @RequestMapping("/add")
     public ResultAjax add(Articleinfo articleinfo,HttpServletRequest request) {
         // 1-校验参数
@@ -143,6 +149,12 @@ public class ArticleController {
         return ResultAjax.succ(articleinfo);
     }
 
+    /**
+     * 更新文章
+     * @param articleinfo
+     * @param request
+     * @return
+     */
     @RequestMapping("/update")
     public ResultAjax update(Articleinfo articleinfo,HttpServletRequest request) {
         // 1-参数校验
@@ -211,6 +223,11 @@ public class ArticleController {
         return ResultAjax.succ(result);
     }
 
+    /**
+     * 增加文章阅读量
+     * @param aid
+     * @return
+     */
     @RequestMapping("/increment_rcount")
     public ResultAjax incrementRCount(Integer aid) {
         // 1-参数校验
